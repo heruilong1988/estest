@@ -18,8 +18,24 @@ import org.elasticsearch.client.RestHighLevelClient;
 
 public class IndexClient {
 
-    RestHighLevelClient restHighLevelClient = new RestHighLevelClient(
-        RestClient.builder(new HttpHost("localhost", 9200, "http")));
+    RestHighLevelClient restHighLevelClient;
+
+    public IndexClient() {
+        this.restHighLevelClient = new RestHighLevelClient(
+            RestClient.builder(new HttpHost("localhost", 9200, "http")));
+    }
+
+    public IndexClient(String[] esServerHost, int esServerPort) {
+        HttpHost[] httpHosts = new HttpHost[esServerHost.length];
+        for(int i = 0; i < esServerHost.length; i++) {
+            httpHosts[i] = new HttpHost(esServerHost[i], esServerPort, "http");
+        }
+        this.restHighLevelClient = new RestHighLevelClient(RestClient.builder(httpHosts));
+    }
+
+    public IndexClient(RestHighLevelClient restHighLevelClient) {
+        this.restHighLevelClient = restHighLevelClient;
+    }
 
     public void index(DeviceInfo deviceInfo) {
         Map<String,Object> jsonMap = new HashMap<>();
