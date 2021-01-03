@@ -1,4 +1,4 @@
-/*
+package org.hrl;/*
  * Copyright (c) 2020, TP-Link Co.,Ltd.
  * Author: heruilong <heruilong@tp-link.com.cn>
  * Created: 2020/12/22
@@ -15,8 +15,14 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.hrl.util.DeviceInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IndexClient {
+
+    static Logger logger = LoggerFactory.getLogger(IndexClient.class);
+
 
     RestHighLevelClient restHighLevelClient;
 
@@ -31,6 +37,14 @@ public class IndexClient {
             httpHosts[i] = new HttpHost(esServerHost[i], esServerPort, "http");
         }
         this.restHighLevelClient = new RestHighLevelClient(RestClient.builder(httpHosts));
+    }
+
+    public void close() {
+        try {
+            restHighLevelClient.close();
+        } catch (IOException e) {
+            logger.error("fail to close  index rest client.", e);
+        }
     }
 
     public IndexClient(RestHighLevelClient restHighLevelClient) {

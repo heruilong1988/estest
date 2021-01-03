@@ -1,4 +1,4 @@
-/*
+package org.hrl;/*
  * Copyright (c) 2020, TP-Link Co.,Ltd.
  * Author: heruilong <heruilong@tp-link.com.cn>
  * Created: 2020/12/22
@@ -18,6 +18,8 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.hrl.util.DevUtils;
+import org.hrl.util.DeviceInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

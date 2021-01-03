@@ -1,8 +1,10 @@
-/*
+package org.hrl.util;/*
  * Copyright (c) 2020, TP-Link Co.,Ltd.
  * Author: heruilong <heruilong@tp-link.com.cn>
  * Created: 2020/12/23
  */
+
+import org.json.JSONObject;
 
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -32,7 +34,7 @@ public class DevUtils {
 
     public static String buildDeviceId(int deviceIdNum) {
         String id = String.format("%40d", deviceIdNum);
-        return id;
+        return id.replace(" ", "F");
     }
 
     public static int getRandomNumber(int origin, int bound) {
@@ -138,5 +140,24 @@ public class DevUtils {
         deviceInfo.setRegionCode((String) devMap.get("region_code"));
         deviceInfo.setVersion((String) devMap.get("version"));
         return deviceInfo;
+    }
+
+    public static JSONObject toDeviceJSON(DeviceInfo deviceInfo) {
+        JSONObject devJSON = new JSONObject();
+        devJSON.put("device_id", deviceInfo.getDeviceId());
+        devJSON.put("account_id", deviceInfo.getAccountId());
+        devJSON.put("alias", deviceInfo.getAlias());
+        devJSON.put("region", deviceInfo.getRegion());
+        devJSON.put("bind_code",deviceInfo.getBindCode());
+        devJSON.put("bind_region", deviceInfo.getBindRegion());
+        devJSON.put("device_type", deviceInfo.getDeviceType());
+        devJSON.put("device_model", deviceInfo.getDeviceModel());
+        devJSON.put("hardware_versioin", deviceInfo.getHardwareVersion());
+        devJSON.put("locale", deviceInfo.getLocale());
+        devJSON.put("mac", deviceInfo.getMac());
+        devJSON.put("oem_id", deviceInfo.getOemId());
+        devJSON.put("region_code",deviceInfo.getRegionCode());
+        devJSON.put("version",deviceInfo.getVersion());
+        return devJSON;
     }
 }

@@ -1,0 +1,33 @@
+1.设置复制分片数量
+
+    curl -XPUT http://ip:9200/index/_settings -d '{
+        "settings" : {
+            "number_of_replicas" : 0
+        }
+    }'
+    //数据插入结束，更新复制分片为1
+    curl -XPUT http://ip:9200/index/_settings -d '{
+        "settings" : {
+            "number_of_replicas" : 1
+        }
+    }'
+
+2、减少shard刷新间隔
+
+    curl -XPUT http://ip:9200/index/_settings -d '{
+        "index" : {
+            "refresh_interval" : "-1"
+        }
+    }'
+    //完成插入后再修改为初始值
+    curl -XPUT http://ip:9200/index/_settings -d '{
+        "index" : {
+            "refresh_interval" : "20s"
+        }
+    }'
+
+3、适当增大节点threadpool参数
+curl -XPUT http://ip:9200/_cluster/settings -d '{"transient":{"threadpool.bulk.queue_size": 100000}}'
+
+参考文献
+https://www.easyice.cn/archives/207

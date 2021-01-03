@@ -1,4 +1,4 @@
-/*
+package org.hrl.util;/*
  * Copyright (c) 2020, TP-Link Co.,Ltd.
  * Author: heruilong <heruilong@tp-link.com.cn>
  * Created: 2020/12/22

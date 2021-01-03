@@ -1,18 +1,17 @@
-/*
+package org.hrl;/*
  * Copyright (c) 2020, TP-Link Co.,Ltd.
  * Author: heruilong <heruilong@tp-link.com.cn>
  * Created: 2020/12/23
  */
 
 import java.io.IOException;
-import java.util.Arrays;
-import org.apache.http.HttpHost;
+
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.protocol.java.sampler.AbstractJavaSamplerClient;
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
 import org.apache.jmeter.samplers.SampleResult;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
+import org.hrl.util.DevUtils;
+import org.hrl.util.DeviceInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +35,14 @@ public class JmeterTest extends AbstractJavaSamplerClient {
         params.addArgument("esServerPort", "http://localhost:8983/solr");
 
         return params;
+    }
+
+
+    @Override
+    public void teardownTest(JavaSamplerContext context) {
+        super.teardownTest(context);
+        searchClient.close();
+        indexClient.close();
     }
 
     @Override
