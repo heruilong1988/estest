@@ -22,15 +22,17 @@ import java.util.List;
 
 public class BulkInsertDevice {
 
-    Logger logger = LoggerFactory.getLogger(BulkInsertDevice.class);
+    static Logger logger = LoggerFactory.getLogger(BulkInsertDevice.class);
 
     private RestHighLevelClient restHighLevelClient;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         BulkInsertDevice bulkInsertDevice = new BulkInsertDevice();
-        String[] esServerHosts = {"localhosts"};
+        String[] esServerHosts = {"localhost"};
         bulkInsertDevice.initRestClient(esServerHosts, 9200);
         bulkInsertDevice.bulkInsertFromFiles("bulkInsertFiles");
+        bulkInsertDevice.restHighLevelClient.close();
+
     }
 
     public void initRestClient(String[] esServerHost, int esServerPort) {
@@ -52,6 +54,9 @@ public class BulkInsertDevice {
                 bulkInsertFromFile(children);
             }
         }
+
+        logger.info("finished");
+
     }
 
     public void bulkInsertFromFile(File file) {

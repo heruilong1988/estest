@@ -66,7 +66,6 @@ public class DeviceInfoBuilder {
      * 文档存储于bulkInsertFiles目录
      * @param numOfDevice
      * @param numberOfDevicePerFile
-     * @param dirPath
      */
     public void createDeviceBulkInsertFiles(long numOfDevice, long numberOfDevicePerFile) {
         long numFile = numOfDevice / numberOfDevicePerFile;
