@@ -27,19 +27,19 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class BulkInsertDevice {
+public class BulkInsertDeviceUser {
 
-    static Logger logger = LoggerFactory.getLogger(BulkInsertDevice.class);
+    static Logger logger = LoggerFactory.getLogger(BulkInsertDeviceUser.class);
 
     private RestHighLevelClient restHighLevelClient;
 
     public static void main(String[] args) throws IOException {
-        BulkInsertDevice bulkInsertDevice = new BulkInsertDevice();
+        BulkInsertDeviceUser bulkInsertDeviceUser = new BulkInsertDeviceUser();
         String[] esServerHosts = {"localhost"};
-        bulkInsertDevice.initRestClient(esServerHosts, 9200);
-        bulkInsertDevice.bulkInsertFromFilesMultiThread("bulkInsertFiles");
-        bulkInsertDevice.restHighLevelClient.close();
-
+        bulkInsertDeviceUser.initRestClient(esServerHosts, 9200);
+        bulkInsertDeviceUser.bulkInsertFromFileMultiThread("bulkInsertDeviceUserFiles");
+        bulkInsertDeviceUser.restHighLevelClient.close();
+        logger.info("bulkInsertDeviceUser.end");
     }
 
     public void initRestClient(String[] esServerHost, int esServerPort) {
@@ -64,8 +64,7 @@ public class BulkInsertDevice {
         logger.info("finished");
     }
 
-    //批量写入， 从文件加载
-    public void bulkInsertFromFilesMultiThread(String fileDirPath) {
+    public void bulkInsertFromFileMultiThread(String fileDirPath) {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         File file = new File(fileDirPath);
         int fileNum = file.listFiles().length;
@@ -73,6 +72,7 @@ public class BulkInsertDevice {
         Iterable<File> childrens = Files.fileTreeTraverser().children(file);
         final CountDownLatch countDownLatch = new CountDownLatch(fileNum);
         for (final File children : childrens) {
+
             if(children.isFile()) {
                 executorService.execute(new Runnable() {
                     @Override
@@ -82,6 +82,7 @@ public class BulkInsertDevice {
                         countDownLatch.countDown();
                     }
                 });
+
             }
         }
         try {
@@ -103,14 +104,13 @@ public class BulkInsertDevice {
                 request.add(indexRequest);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("exception.",e);
         }
 
         try {
             BulkResponse bulkResponse = restHighLevelClient.bulk(request, RequestOptions.DEFAULT);
             checkBulkResponse(bulkResponse);
         } catch (IOException e) {
-            e.printStackTrace();
             logger.error("failed to bulkInsert.",e);
         }
 
@@ -145,18 +145,8 @@ public class BulkInsertDevice {
         }
     }
 
-    public void bulkInsert(String bulkInsertData) {
-
-        BulkRequest request = new BulkRequest();
-
-        request.add(new IndexRequest("posts").id("1")
-                .source(XContentType.JSON,"field", "foo"));
-        request.add(new IndexRequest("posts").id("2")
-                .source(XContentType.JSON,"field", "bar"));
-    }
-
     public IndexRequest createIndexFromJsonStr(String jsonStr, String docId) {
-        IndexRequest request = new IndexRequest("device");
+        IndexRequest request = new IndexRequest("device_user");
         request.source(jsonStr, XContentType.JSON);
         request.id(docId);
         request.opType(DocWriteRequest.OpType.CREATE);

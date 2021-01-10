@@ -14,7 +14,9 @@
             <PatternLayout
               pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
             <Policies>
+<!--
                 <TimeBasedTriggeringPolicy interval="1" />
+-->
                 <SizeBasedTriggeringPolicy size="10 MB" />
             </Policies>
             <DefaultRolloverStrategy max="20" />
@@ -24,6 +26,8 @@
     <Loggers>
         <Logger name="org.hrl" level="debug" additivity="false">
             <AppenderRef ref="MyFile" />
+            <AppenderRef ref="Console" />
+
         </Logger>
         <Root level="error">
             <AppenderRef ref="Console" />

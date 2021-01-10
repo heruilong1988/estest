@@ -23,7 +23,16 @@ public class DeviceInfo {
     public String region;
     public String regionCode;
     public String version;
+    public String deviceName;
 
+
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
+    }
 
     public String getDeviceId() {
         return deviceId;

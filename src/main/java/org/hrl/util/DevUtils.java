@@ -4,8 +4,10 @@ package org.hrl.util;/*
  * Created: 2020/12/23
  */
 
+import org.hrl.data.inject.DeviceUserInfo;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -28,8 +30,21 @@ public class DevUtils {
         public static String VERSION = "version";
     }
 
+    public static class DEVICE_USER_FIELDS {
+        public static String  DEVICE_ID = "device_id";
+        public static String  OWNER_ID = "owner_id";
+        public static String  USER_ID = "user_id";
+        public static String ALIAS = "alias";
+        public static String DEVICE_TYPE = "device_type";
+        public static String DEVICE_NAME = "device_name";
+    }
+
+    public static long buildRandomAccountId(int origin, int bound) {
+        return ThreadLocalRandom.current().nextInt(origin,bound);
+    }
+
     public static String buildRandomDeviceId(int origin, int bound) {
-       return String.format("%40d", ThreadLocalRandom.current().nextInt(origin,bound));
+       return String.format("%40d", ThreadLocalRandom.current().nextInt(origin,bound)).replace(" ", "F");
     }
 
     public static String buildDeviceId(int deviceIdNum) {
@@ -46,6 +61,10 @@ public class DevUtils {
         return "alias"+ String.valueOf(random);
     }
 
+    public static String buildAlias(long num) {
+        return "alias"+num;
+    }
+
     public static String buildBindCode() {
         int random = ThreadLocalRandom.current().nextInt(0,1000000);
         return "bindCode"+ String.valueOf(random);
@@ -57,8 +76,16 @@ public class DevUtils {
     }
 
     public static String buildDeviceType() {
-        int random = ThreadLocalRandom.current().nextInt(0,500);
+        int random = ThreadLocalRandom.current().nextInt(0,30);
         return "deviceType"+ String.valueOf(random);
+    }
+
+    public static String buildDeviceType(long num) {
+        return "deviceType" + num;
+    }
+
+    public static String buildDeviceName(long num) {
+        return "deviceName" + num;
     }
 
     public static String buildDeviceModel() {
@@ -122,7 +149,6 @@ public class DevUtils {
         return deviceInfo;
     }
 
-
     public static DeviceInfo toDeviceInfo(Map<String,Object> devMap) {
         DeviceInfo deviceInfo = new DeviceInfo();
         deviceInfo.setDeviceId((String) devMap.get("device_id"));
@@ -142,6 +168,17 @@ public class DevUtils {
         return deviceInfo;
     }
 
+    public static DeviceUserInfo toDeviceUserInfo(Map<String,Object> devMap) {
+        DeviceUserInfo deviceUserInfo = new DeviceUserInfo();
+        deviceUserInfo.setDeviceId((String) devMap.get("device_id"));
+        deviceUserInfo.setOwnerId((String) devMap.get("owner_id"));
+        deviceUserInfo.setAlias((String) devMap.get("alias"));
+        deviceUserInfo.setUserId((String) devMap.get("user_id"));
+        deviceUserInfo.setDeviceType((String) devMap.get("device_type"));
+        deviceUserInfo.setDeviceName((String) devMap.get("device_name"));
+        return deviceUserInfo;
+    }
+
     public static JSONObject toDeviceJSON(DeviceInfo deviceInfo) {
         JSONObject devJSON = new JSONObject();
         devJSON.put("device_id", deviceInfo.getDeviceId());
@@ -159,5 +196,33 @@ public class DevUtils {
         devJSON.put("region_code",deviceInfo.getRegionCode());
         devJSON.put("version",deviceInfo.getVersion());
         return devJSON;
+    }
+
+    public static Map<String, Object> toDeviceMap(DeviceInfo deviceInfo) {
+        Map<String,Object> jsonMap = new HashMap<>();
+        jsonMap.put("device_id", deviceInfo.deviceId);
+        jsonMap.put("account_id", deviceInfo.accountId);
+        jsonMap.put("alias", deviceInfo.alias);
+        jsonMap.put("bind_code",deviceInfo.bindCode);
+        jsonMap.put("device_type",deviceInfo.deviceType);
+        jsonMap.put("device_name",deviceInfo.deviceName);
+        jsonMap.put("device_model",deviceInfo.deviceModel);
+        jsonMap.put("mac",deviceInfo.mac);
+        jsonMap.put("oem_id",deviceInfo.oemId);
+        jsonMap.put("hardware_version",deviceInfo.hardwareVersion);
+        jsonMap.put("region_code",deviceInfo.regionCode);
+        jsonMap.put("region",deviceInfo.region);
+        return jsonMap;
+    }
+
+    public static Map<String, Object> toDeviceUserMap(DeviceUserInfo deviceUserInfo) {
+        Map<String,Object> jsonMap = new HashMap<>();
+        jsonMap.put("device_id", deviceUserInfo.getDeviceId());
+        jsonMap.put("owner_id", deviceUserInfo.getOwnerId());
+        jsonMap.put("alias", deviceUserInfo.getAlias());
+        jsonMap.put("user_id",deviceUserInfo.getUserId());
+        jsonMap.put("device_type",deviceUserInfo.getDeviceType());
+        jsonMap.put("device_name", deviceUserInfo.getDeviceName());
+        return jsonMap;
     }
 }

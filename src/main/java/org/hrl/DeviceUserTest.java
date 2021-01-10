@@ -1,21 +1,17 @@
-package org.hrl;/*
- * Copyright (c) 2020, TP-Link Co.,Ltd.
- * Author: heruilong <heruilong@tp-link.com.cn>
- * Created: 2020/12/23
- */
+package org.hrl;
 
-import java.io.IOException;
-
+import org.apache.jmeter.config.Argument;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.protocol.java.sampler.AbstractJavaSamplerClient;
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
 import org.apache.jmeter.samplers.SampleResult;
+import org.hrl.data.inject.DeviceUserInfo;
+import org.hrl.data.inject.DeviceUserInfoBuilder;
 import org.hrl.util.DevUtils;
-import org.hrl.util.DeviceInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JmeterTest extends AbstractJavaSamplerClient {
+public class DeviceUserTest extends AbstractJavaSamplerClient {
 
     Logger logger = LoggerFactory.getLogger(JmeterTest.class);
 
@@ -26,6 +22,23 @@ public class JmeterTest extends AbstractJavaSamplerClient {
     private int readRatio;
     private int writeRatio;
 
+    private String aliasPattern;
+    private String deviceTypePattern;
+    private String deviceNamePattern;
+
+    private boolean useAliasPattern;
+    private boolean useDeviceTypePattern;
+    private boolean useDeviceNameAlias;
+
+
+    public static void main(String[] args) {
+        DeviceUserTest deviceUserTest = new DeviceUserTest();
+        Arguments arguments = deviceUserTest.getDefaultParameters();
+        JavaSamplerContext javaSamplerContext = new JavaSamplerContext(arguments);
+        deviceUserTest.setupTest(javaSamplerContext);
+        deviceUserTest.runTest(javaSamplerContext);
+        deviceUserTest.teardownTest(javaSamplerContext);
+    }
 
     /**
      * 参数注册
@@ -36,13 +49,18 @@ public class JmeterTest extends AbstractJavaSamplerClient {
     public Arguments getDefaultParameters() {
 
         Arguments params = new Arguments();
-        params.addArgument("esServerHost", "http://localhost:8983/solr");
-        params.addArgument("esServerPort", "http://localhost:8983/solr");
+        params.addArgument("esServerHost", "localhost");
+        params.addArgument("esServerPort", "9200");
         params.addArgument("searchIdLimit", "10000000");
-        params.addArgument("readRatio", "7");
-        params.addArgument("writeRatio", "1");
+        params.addArgument("readRatio", "1");
+        params.addArgument("writeRatio", "10");
         params.addArgument("recordRead", "true");
-
+        params.addArgument("aliasPattern","*alias*");
+        params.addArgument("deviceTypePattern","*deviceType*");
+        params.addArgument("deviceName","*deviceName*");
+        params.addArgument("useAliasPattern","true");
+        params.addArgument("useDeviceTypePattern","true");
+        params.addArgument("useDeviceNamePattern","true");
         return params;
     }
 
@@ -53,6 +71,7 @@ public class JmeterTest extends AbstractJavaSamplerClient {
         searchClient.close();
         indexClient.close();
     }
+
 
     @Override
     public void setupTest(JavaSamplerContext context) {
@@ -66,8 +85,17 @@ public class JmeterTest extends AbstractJavaSamplerClient {
         this.writeRatio = context.getIntParameter("writeRatio");
         this.recordRead = Boolean.parseBoolean(context.getParameter("recordRead"));
 
+        this.aliasPattern = context.getParameter("aliasPattern");
+        this.deviceNamePattern = context.getParameter("deviceNamePattern");
+        this.deviceTypePattern = context.getParameter("deviceTypePattern");
+        this.useAliasPattern = Boolean.parseBoolean(context.getParameter("useAliasPattern"));
+        this.useDeviceTypePattern = Boolean.parseBoolean(context.getParameter("useDeviceTypePattern"));
+        this.useDeviceNameAlias = Boolean.parseBoolean(context.getParameter("useDeviceNamePattern"));
+
         logger.info("setup. searchClient:{},indexClient:{},searchIdLimit:{}", searchClient, indexClient, searchIdLimit);
         logger.info("setup.recordRead:{},readRatio:{},writeRatio:{}", recordRead,readRatio, writeRatio);
+        logger.info("setup.aliasPattern:{},deviceNamePattern:{},deviceTypePattern:{}",aliasPattern,deviceNamePattern,deviceTypePattern);
+        logger.info("setup.useAliasPattern:{},useDeviceNamePattern:{},useDeviceTypePattern:{}",useAliasPattern,useDeviceNameAlias,useDeviceTypePattern);
     }
 
 
@@ -76,7 +104,7 @@ public class JmeterTest extends AbstractJavaSamplerClient {
 
         //send request
         SampleResult sr = new SampleResult();
-        sr.setSampleLabel("estest");
+        sr.setSampleLabel("deviceUsertest");
         sendRequest(sr, searchIdLimit);
         return sr;
     }
@@ -89,16 +117,25 @@ public class JmeterTest extends AbstractJavaSamplerClient {
         int ratio = DevUtils.getRandomNumber(1, readRatio + writeRatio + 1); //[1-8]整型随机数
         if (ratio > writeRatio) {
             //读请求
-            DeviceInfo deviceInfo = new DeviceInfo();
+            DeviceUserInfo deviceUserInfo = new DeviceUserInfo();
             //0-searchIdLimit, deviceId格式:0000000...deviceIdNum,一共40位
-            String deviceId = DevUtils.buildRandomDeviceId(0, searchIdLimit);
-            deviceInfo.setDeviceId(deviceId);
+            long ownerId = DevUtils.buildRandomAccountId(0, searchIdLimit);
+            if(useAliasPattern) {
+                deviceUserInfo.setAlias(this.aliasPattern);
+            }
+            if(useDeviceNameAlias) {
+                deviceUserInfo.setDeviceName(this.deviceNamePattern);
+            }
+            if(useDeviceTypePattern) {
+                deviceUserInfo.setDeviceType(this.deviceTypePattern);
+            }
+            deviceUserInfo.setOwnerId(String.valueOf(ownerId));
 
             try {
                 if (recordRead) {
                     sr.sampleStart();
                 }
-                DeviceInfo rspDevInfo = searchClient.getDeviceInfo(deviceInfo);
+                DeviceUserInfo rspDevInfo = searchClient.getDeviceUserInfo(deviceUserInfo);
                 if (recordRead) {
                     sr.setSuccessful(true);
                 }
@@ -115,18 +152,22 @@ public class JmeterTest extends AbstractJavaSamplerClient {
 
         } else {
             //写请求
-            DeviceInfo indexDevInfo = DevUtils.buildTemplateDevInfo();
+
+            DeviceUserInfo deviceUserInfo = new DeviceUserInfo();
             int deviceIdNum = DevUtils.getRandomNumber(30000000, 50000000);
             String deviceId = DevUtils.buildDeviceId(deviceIdNum);
-            String accountId = String.valueOf(deviceIdNum);
-            indexDevInfo.setDeviceId(deviceId);
-            indexDevInfo.setAccountId(accountId);
+            deviceUserInfo.setDeviceId(deviceId);
+            deviceUserInfo.setOwnerId(String.valueOf(deviceIdNum));
+            deviceUserInfo.setUserId(String.valueOf(DeviceUserInfoBuilder.ownerUserGap + deviceIdNum));
+            deviceUserInfo.setAlias(DevUtils.buildAlias(deviceIdNum));
+            deviceUserInfo.setDeviceType(DevUtils.buildDeviceType(deviceIdNum));
+            deviceUserInfo.setDeviceName(DevUtils.buildDeviceName(deviceIdNum));
 
             try {
                 if (!recordRead) {
                     sr.sampleStart();
                 }
-                indexClient.index(indexDevInfo);
+                indexClient.indexDeviceUser(deviceUserInfo);
                 if (!recordRead) {
                     sr.setSuccessful(true);
                 }
@@ -143,4 +184,5 @@ public class JmeterTest extends AbstractJavaSamplerClient {
         }
 
     }
+
 }

@@ -1,0 +1,1 @@
+{"device_name":"deviceName100","device_id":"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF100","user_id":"1000000100","owner_id":"100","alias":"alias100"}

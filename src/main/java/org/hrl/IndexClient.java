@@ -4,9 +4,6 @@ package org.hrl;/*
  * Created: 2020/12/22
  */
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.http.HttpHost;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.DocWriteResponse.Result;
@@ -15,14 +12,19 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.hrl.data.inject.DeviceUserInfo;
+import org.hrl.util.DevUtils;
 import org.hrl.util.DeviceInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 public class IndexClient {
 
     static Logger logger = LoggerFactory.getLogger(IndexClient.class);
-
 
     RestHighLevelClient restHighLevelClient;
 
@@ -53,31 +55,54 @@ public class IndexClient {
 
     public void index(DeviceInfo deviceInfo) {
         Map<String,Object> jsonMap = new HashMap<>();
-        jsonMap.put("device_id", deviceInfo.deviceId);
-        jsonMap.put("postDate", "2013-01-30");
-        jsonMap.put("message", "trying out Elasticsearch");
+        jsonMap = DevUtils.toDeviceMap(deviceInfo);
         IndexRequest indexRequest = new IndexRequest("device").source(jsonMap);
+        indexRequest.id(deviceInfo.getDeviceId());
         try {
             IndexResponse indexResponse =  restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
             String index = indexResponse.getIndex();
             String id = indexResponse.getId();
             if(indexResponse.getResult() == Result.CREATED){
                 //Handle (if needed) the case where the document was created for the first time
-                System.out.println("created");
+                //System.out.println("created");
+                logger.debug("created deviceInfo:{}",deviceInfo);
             }else if(indexResponse.getResult() == Result.UPDATED) {
 //Handle (if needed) the case where the document was rewritten as it was already existing
-                System.out.println("updated");
+                //System.out.println("updated");
+                logger.debug("updated deviceInfo:{}",deviceInfo);
             }
         } catch (IOException e) {
-            e.printStackTrace();
-
+            logger.error("ioe.", e);
         } catch (ElasticsearchException e) {
-            e.printStackTrace();
+            logger.error("exception.",e);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("exception.",e);
         }
     }
 
+    public void indexDeviceUser(DeviceUserInfo deviceUserInfo) {
+        Map<String,Object> jsonMap = new HashMap<>();
+        jsonMap =DevUtils.toDeviceUserMap(deviceUserInfo);
+        IndexRequest indexRequest = new IndexRequest("device_user").source(jsonMap);
+        try {
+            IndexResponse indexResponse =  restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
+            String index = indexResponse.getIndex();
+            String id = indexResponse.getId();
+            if(indexResponse.getResult() == Result.CREATED){
+                //Handle (if needed) the case where the document was created for the first time
+                logger.debug("created deviceUserInfo:{}",deviceUserInfo);
+            }else if(indexResponse.getResult() == Result.UPDATED) {
+                //Handle (if needed) the case where the document was rewritten as it was already existing
+                logger.debug("updated deviceUserInfo:{}",deviceUserInfo);
+            }
+        } catch (IOException e) {
+            logger.error("ioe.", e);
+        } catch (ElasticsearchException e) {
+            logger.error("exception.",e);
+        } catch (Exception e) {
+            logger.error("exception.",e);
+        }
+    }
     public static void main(String[] args) throws IOException {
         IndexClient indexClient = new IndexClient();
         DeviceInfo deviceInfo = new DeviceInfo();
